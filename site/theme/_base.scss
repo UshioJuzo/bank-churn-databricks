@@ -1,0 +1,472 @@
+// ═══════════════════════════════════════════════════════════════════
+//  REGLAS COMPARTIDAS — no definir colores acá
+//
+//  Este archivo contiene la estructura visual del documento y se
+//  importa desde tema-oscuro.scss y tema-claro.scss.
+//  Cada uno de esos archivos define la paleta; acá solo se usan las
+//  variables. Si un color hace falta, se agrega a AMBAS paletas.
+//
+//  → La paleta del proyecto y el reparto de roles están documentados
+//    en PALETA.md. Todo color nuevo sale de ahí.
+//
+//  Variables que las paletas deben proveer:
+//    $ink $ink-soft $ink-faint $paper $paper-2 $card $line $line-soft
+//    $rust $rust-soft $ok $ok-soft $warn $warn-soft $bad $bad-soft
+//    $deep $steel $steel-soft
+//    $banner-bg $banner-ink $banner-ink-soft $banner-chip-bg $banner-chip-line
+//    $note-line $pitfall-line $good-line $pitfall-ink $good-ink
+//    $code-block-ink $table-head-bg $table-head-ink
+// ═══════════════════════════════════════════════════════════════════
+
+html { scroll-behavior: smooth; }
+body { -webkit-font-smoothing: antialiased; }
+
+// ── Banner del título (el "hero") ───────────────────────────────────
+.quarto-title-banner {
+  background: $banner-bg !important;
+  border-bottom: 5px solid $rust;
+  padding: 46px 0 40px;
+
+  .title {
+    font-weight: 600;
+    letter-spacing: -.01em;
+    line-height: 1.12;
+    color: $banner-ink;
+  }
+  .subtitle, p.subtitle {
+    font-family: $font-family-monospace;
+    font-size: 13px;
+    letter-spacing: .04em;
+    color: $banner-ink-soft;
+    margin-top: 10px;
+  }
+  .quarto-title-meta-heading {
+    font-family: $font-family-monospace;
+    font-size: 10.5px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: $banner-ink-soft;
+    opacity: .85;
+  }
+  .quarto-title-meta-contents, .quarto-title-meta-contents p {
+    color: $banner-ink;
+    font-size: 14.5px;
+  }
+}
+
+// ── Chips de metadatos ──────────────────────────────────────────────
+//  Van en el cuerpo (fondo papel), NO dentro del banner: por eso el
+//  contraste se calcula contra $paper y no contra el azul.
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 26px 0 22px;
+
+  span {
+    font-family: $font-family-monospace;
+    font-size: 11.5px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    background: $paper-2;
+    border: 1px solid $line;
+    padding: 5px 11px;
+    border-radius: 2px;
+    color: $ink-soft;
+    white-space: nowrap;
+  }
+}
+
+// ── Barra de hilo conductor ─────────────────────────────────────────
+.thread {
+  background: $rust-soft;
+  border: 1px solid $line;
+  border-left: 3px solid $rust;
+  padding: 14px 18px;
+  margin: 0 0 32px;
+  border-radius: 2px;
+
+  .tag {
+    display: block;
+    font-family: $font-family-monospace;
+    font-size: 10.5px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: $rust;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  p { margin: 0; font-size: 15px; color: $ink-soft; }
+}
+
+// ── Jerarquía de headings ───────────────────────────────────────────
+//  h1 = módulo · h2 = notebook / taller / parcial · h3 = subsección
+h1, .h1 {
+  font-size: 2.05rem;
+  letter-spacing: -.015em;
+  color: $ink;
+  margin: 3rem 0 1.1rem;
+  padding-bottom: .45rem;
+  border-bottom: 2px solid $rust;
+}
+
+h2, .h2 {
+  font-size: 1.42rem;
+  color: $ink;
+  margin: 2.3rem 0 .85rem;
+  padding-bottom: .4rem;
+  border-bottom: 1px solid $line;
+  letter-spacing: -.005em;
+}
+
+h3, .h3 {
+  font-family: $font-family-monospace;
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: $rust;
+  margin: 1.9rem 0 .7rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+
+  &::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: $line-soft;
+  }
+}
+
+h4, .h4 {
+  font-size: 1rem;
+  color: $steel;
+  margin: 1.4rem 0 .5rem;
+  font-weight: 600;
+}
+
+// si en algún momento se activa number-sections
+.header-section-number {
+  font-family: $font-family-monospace;
+  color: $rust;
+  font-weight: 600;
+  opacity: .9;
+  margin-right: .45em;
+}
+
+p { color: $ink-soft; }
+strong { color: $ink; font-weight: 600; }
+a { text-decoration: none; border-bottom: 1px solid $line; }
+a:hover { border-bottom-color: $rust; }
+
+// ── Tabla de contenidos ─────────────────────────────────────────────
+//  Sin numeración propia: la jerarquía se lee por indentación y color.
+//  El ancho de la columna y la separación con el texto se controlan con
+//  las variables de grilla de Quarto (ver los archivos de paleta); acá
+//  se agrega el aire interno del propio índice.
+//  El TOC va a la derecha, así que el aire interno va del lado del texto.
+#quarto-margin-sidebar {
+  padding-left: 2rem;
+  padding-right: 0;
+}
+
+nav#TOC, #quarto-margin-sidebar nav, .sidebar nav[role="doc-toc"] {
+  font-size: 14px;
+
+  ul { list-style: none; padding-left: 0; margin: 0; }
+
+  > ul > li > a {
+    display: block;
+    color: $ink;
+    font-weight: 600;
+    padding: 8px 0 8px 12px;
+    border-left: 2px solid $line;
+    border-bottom: none;
+    line-height: 1.3;
+  }
+
+  ul ul { padding-left: 12px; }
+  ul ul a {
+    display: block;
+    color: $ink-soft;
+    font-size: 13px;
+    font-weight: 400;
+    padding: 5px 0 5px 12px;
+    border-left: 1px solid $line-soft;
+    border-bottom: none;
+    line-height: 1.3;
+  }
+
+  a:hover { color: $rust; border-left-color: $rust; }
+  a.active {
+    color: $rust;
+    font-weight: 600;
+    border-left-color: $rust;
+  }
+}
+
+#toc-title, .sidebar-title {
+  font-family: $font-family-monospace;
+  font-size: 11px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: $ink-faint;
+  padding-bottom: 10px;
+  border-bottom: 1px solid $line;
+  margin-bottom: 12px;
+}
+
+// ── Componentes propios ─────────────────────────────────────────────
+.intro-note {
+  background: $card;
+  border: 1px solid $line;
+  border-left: 3px solid $steel;
+  padding: 20px 24px;
+  margin: 0 0 36px;
+  border-radius: 2px;
+
+  h2, h3, h4 {
+    margin: 0 0 10px;
+    font-family: $font-family-sans-serif;
+    font-size: 19px;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    color: $ink;
+    border: none;
+    padding: 0;
+    display: block;
+    &::after { display: none; }
+  }
+  p { margin: 0 0 10px; font-size: 15.5px; }
+  p:last-child { margin-bottom: 0; }
+}
+
+.note {
+  background: $steel-soft;
+  border: 1px solid $note-line;
+  border-radius: 3px;
+  padding: 16px 20px;
+  margin: 16px 0;
+
+  .tt {
+    display: block;
+    font-family: $font-family-monospace;
+    font-size: 10.5px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: $steel;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  p { margin: 0 0 8px; font-size: 15px; color: $ink; }
+  p:last-child { margin-bottom: 0; }
+  strong { color: $ink; }
+  code { background: $paper; border-color: $note-line; }
+}
+
+.pitfall, .good {
+  border-radius: 3px;
+  padding: 13px 18px;
+  margin: 16px 0;
+
+  p { margin: 0 0 6px; font-size: 14.5px; }
+  p:last-child { margin-bottom: 0; }
+}
+.pitfall {
+  background: $bad-soft;
+  border: 1px solid $pitfall-line;
+  p { color: $pitfall-ink; }
+  strong { color: $bad; }
+  code { background: $paper; border-color: $pitfall-line; }
+}
+.good {
+  background: $ok-soft;
+  border: 1px solid $good-line;
+  p { color: $good-ink; }
+  strong { color: $ok; }
+  code { background: $paper; border-color: $good-line; }
+}
+
+// ── Tablas ──────────────────────────────────────────────────────────
+table, .table, table.dataframe {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0 20px;
+  font-size: 14.5px;
+  color: $ink-soft;
+
+  thead th, th {
+    background: $table-head-bg;
+    color: $table-head-ink;
+    text-align: left;
+    padding: 9px 12px;
+    font-family: $font-family-monospace;
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    border: none;
+  }
+
+  td {
+    padding: 9px 12px;
+    border-bottom: 1px solid $line-soft;
+    color: $ink-soft;
+    vertical-align: top;
+    background: transparent;
+  }
+
+  tbody tr:nth-child(even) td { background: $paper-2; }
+}
+
+table.dataframe {
+  td { font-family: $font-family-monospace; font-size: 13px; }
+  tbody th {
+    background: $paper-2;
+    color: $steel;
+    font-family: $font-family-monospace;
+    font-size: 12px;
+    text-transform: none;
+    letter-spacing: 0;
+    text-align: right;
+  }
+}
+
+// ── Código ──────────────────────────────────────────────────────────
+code:not(.sourceCode) {
+  font-family: $font-family-monospace;
+  font-size: .86em;
+  background: $paper-2;
+  padding: 1.5px 6px;
+  border-radius: 3px;
+  color: $steel;
+  border: 1px solid $line-soft;
+}
+
+div.sourceCode, pre.sourceCode, pre {
+  background: $code-block-bg !important;
+  border: 1px solid $line;
+  border-radius: 4px;
+  margin: 12px 0 8px;
+}
+
+pre code, pre.sourceCode code {
+  font-family: $font-family-monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: $code-block-ink;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+// salidas de texto de las celdas: fondo tarjeta, no bloque de código
+.cell-output pre, .cell-output-stdout pre, .cell-output-stderr pre {
+  background: $card !important;
+  border: 1px solid $line;
+  color: $ink-soft;
+  font-size: 12.5px;
+  code { color: $ink-soft; }
+}
+
+// etiqueta del bloque de código plegable
+.code-fold summary, details summary {
+  font-family: $font-family-monospace;
+  font-size: 11.5px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: $ink-faint;
+}
+
+// ── Callouts nativos de Quarto ──────────────────────────────────────
+.callout {
+  border-radius: 3px;
+  border-left-width: 3px;
+  background: $card;
+
+  .callout-title {
+    font-family: $font-family-monospace;
+    font-size: 11.5px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: .4rem .7rem;
+  }
+  .callout-body, .callout-body p { color: $ink-soft; font-size: 15px; }
+}
+.callout-note      { background: $steel-soft; .callout-title { color: $steel; } }
+.callout-tip       { background: $ok-soft;    .callout-title { color: $ok; } }
+.callout-warning   { background: $warn-soft;  .callout-title { color: $warn; } }
+.callout-important { background: $bad-soft;   .callout-title { color: $bad; } }
+
+// ── Varios ──────────────────────────────────────────────────────────
+blockquote {
+  border-left: 3px solid $rust;
+  background: $rust-soft;
+  padding: 12px 18px;
+  margin: 16px 0;
+  color: $ink-soft;
+  font-size: 15.5px;
+  p:last-child { margin-bottom: 0; }
+}
+
+hr {
+  border: none;
+  border-top: 1px solid $line;
+  margin: 2.4rem 0;
+  opacity: 1;
+}
+
+// ── Imágenes: nunca más anchas que la columna ───────────────────────
+//  Sin esto, una figura de matplotlib más ancha que el contenido obliga a
+//  hacer scroll horizontal para verla completa.
+main img, figure img, .cell-output-display img, .quarto-figure img, p img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cell-output-display, .quarto-figure { overflow-x: hidden; }
+
+figure figcaption, .figure-caption, caption, .quarto-float-caption {
+  font-family: $font-family-monospace;
+  font-size: 11.5px;
+  letter-spacing: .06em;
+  color: $ink-faint;
+  text-align: center;
+  margin-top: 8px;
+}
+
+ul, ol { color: $ink-soft; }
+li { margin: 4px 0; }
+
+// placeholder para las imágenes que todavía no existen (parciales)
+.placeholder-box {
+  border: 1px dashed $line;
+  background: $paper-2;
+  border-radius: 3px;
+  padding: 30px 20px;
+  margin: 16px 0;
+  text-align: center;
+
+  p {
+    margin: 0;
+    font-family: $font-family-monospace;
+    font-size: 12px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: $ink-faint;
+  }
+}
+
+// ── Responsive ──────────────────────────────────────────────────────
+@media (max-width: 860px) {
+  h1, .h1 { font-size: 1.8rem; }
+  h3, .h3 { letter-spacing: .1em; }
+  table, .table { font-size: 13px; }
+  .hero-meta span { font-size: 10.5px; }
+}

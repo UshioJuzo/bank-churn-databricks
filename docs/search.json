@@ -1,0 +1,205 @@
+[
+  {
+    "objectID": "pipeline.html",
+    "href": "pipeline.html",
+    "title": "Architecture",
+    "section": "",
+    "text": "Volume ─▶ Lakebase ─▶ bronze ─▶ silver ─▶ model ─▶ gold ─▶ Lakebase ─▶ CRM\n  CSV      Postgres      Delta     Delta            Delta   reverse ETL\n                                                        └─▶ parquet ─▶ public app\nLakebase is Postgres 17 running inside Databricks: the operational side. Single rows, foreign keys, low latency. It is where the retention team’s system reads.\nDelta under Unity Catalog is the analytical side. Columns, history, large scans, time travel.\nThey are two engines because they solve two different problems. There is also an operational reason: an analytical scan over the transactional database would compete with the writes of the system that actually depends on it.\n\nThe predictions travel back to Postgres. A model whose output never reaches the system that makes the decision has not finished."
+  },
+  {
+    "objectID": "pipeline.html#why-two-systems",
+    "href": "pipeline.html#why-two-systems",
+    "title": "Architecture",
+    "section": "",
+    "text": "Volume ─▶ Lakebase ─▶ bronze ─▶ silver ─▶ model ─▶ gold ─▶ Lakebase ─▶ CRM\n  CSV      Postgres      Delta     Delta            Delta   reverse ETL\n                                                        └─▶ parquet ─▶ public app\nLakebase is Postgres 17 running inside Databricks: the operational side. Single rows, foreign keys, low latency. It is where the retention team’s system reads.\nDelta under Unity Catalog is the analytical side. Columns, history, large scans, time travel.\nThey are two engines because they solve two different problems. There is also an operational reason: an analytical scan over the transactional database would compete with the writes of the system that actually depends on it.\n\nThe predictions travel back to Postgres. A model whose output never reaches the system that makes the decision has not finished."
+  },
+  {
+    "objectID": "pipeline.html#the-medallion-layers-and-the-rule-each-one-keeps",
+    "href": "pipeline.html#the-medallion-layers-and-the-rule-each-one-keeps",
+    "title": "Architecture",
+    "section": "The medallion layers, and the rule each one keeps",
+    "text": "The medallion layers, and the rule each one keeps\n\n\n\n\n\n\n\n\nLayer\nWhat lives there\nThe rule\n\n\n\n\nbronze\nThe source file, unchanged\nNothing is corrected here. Fidelity beats cleanliness\n\n\nsilver\nTyped, clean, four derived features\nOnly deterministic features — nothing that learns a statistic\n\n\ngold\nPredictions and tables the app reads\nOne writer per table, no exceptions\n\n\n\nThat middle rule is the anti-leakage control. Anything that learns from data — scaling, encoding, imputation — lives inside the scikit-learn Pipeline, which is fitted after the train/test split and inside each cross-validation fold. A scaler fitted in silver would have seen the test rows, and every number reported afterwards would be quietly optimistic."
+  },
+  {
+    "objectID": "pipeline.html#one-writer-per-table",
+    "href": "pipeline.html#one-writer-per-table",
+    "title": "Architecture",
+    "section": "One writer per table",
+    "text": "One writer per table\nThis one was learned the hard way. When two notebooks wrote the same table, every re-run of the evaluation notebook wiped the Unity Catalog link the publication notebook had added — and the only symptom appeared days later, when the application stopped being able to load its model.\n\n\n\nTable\nWritten by\nRead by\n\n\n\n\nsilver.test_holdout\nnotebook 04\n05\n\n\ngold.model_reference\nnotebook 04\n05, 06\n\n\ngold.production_model_base\nnotebook 05\n06\n\n\ngold.production_model\nnotebook 06\nthe app"
+  },
+  {
+    "objectID": "pipeline.html#privacy-enforced-by-the-schema",
+    "href": "pipeline.html#privacy-enforced-by-the-schema",
+    "title": "Architecture",
+    "section": "Privacy enforced by the schema",
+    "text": "Privacy enforced by the schema\nsurname exists in the landing table, because that table is a faithful copy of the source. It does not exist in the modelled table.\nThe constraint is imposed by the schema rather than by the discipline of whoever writes the next query. A column that does not exist cannot be leaked by accident, and the boundary holds all the way to the operational query the CRM runs."
+  },
+  {
+    "objectID": "pipeline.html#the-reverse-etl",
+    "href": "pipeline.html#the-reverse-etl",
+    "title": "Architecture",
+    "section": "The reverse ETL",
+    "text": "The reverse ETL\n\n\n\n\n\n\n\n\nFigure 1: The 800 contacts are not split evenly. Each country receives a share proportional to its expected churners, which is why Germany takes roughly the same quota as France with half the customers.\n\n\n\n\n\nThe write back to Lakebase is append-only: one row per customer per scoring run. That way what was predicted at a given moment can be reconstructed, instead of overwriting the past. Both writes are idempotent — the run is upserted and the predictions are deleted for that run before reloading — so running the cell twice leaves the same state as running it once."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Bank Customer Churn",
+    "section": "",
+    "text": "10,000 customers · 20.4% annual churn · 800 calls per campaign · Databricks"
+  },
+  {
+    "objectID": "index.html#the-question",
+    "href": "index.html#the-question",
+    "title": "Bank Customer Churn",
+    "section": "The question",
+    "text": "The question\nA bank loses one customer in five every year and has budget to call 800 of them before they go. The question is not who will leave — nobody decides that. It is who to call with the calls you have.\nThat constraint changes the problem. Recovering a customer is worth 145 €; bothering one who was staying costs 35 €. From those two numbers a threshold falls out:\n\\[p^* = \\frac{35}{145 + 35} = 0.194\\]\nBelow that probability, calling destroys value. But with fixed capacity the threshold that actually applies is not the profitable one — it is the one the quota imposes. The 800 highest-risk customers go in, and the cut lands at 0.73.\nCapacity turns classification into ranking. Everything else on this site follows from that sentence: the metric, the rival to beat, and the ceiling the project could not cross.\n\nThe model is not judged against random guessing. It is judged against the rule the bank could apply tomorrow with no model at all."
+  },
+  {
+    "objectID": "index.html#what-came-out",
+    "href": "index.html#what-came-out",
+    "title": "Bank Customer Churn",
+    "section": "What came out",
+    "text": "What came out\n\n\n\n\nModel\nBusiness rule\n\n\n\n\nAverage precision\n0.6848\n0.4677\n\n\nROC-AUC\n0.8562\n0.7526\n\n\nPrecision at the operating threshold\n88.2%\n—\n\n\nChurners caught in the quota\n142 of 407\n—\n\n\n\n\n\n\n\n\n\n\n\nFigure 1: The portfolio split by risk level. The high band is exactly 800 customers, because that is the campaign capacity — not because a probability cut happened to land there."
+  },
+  {
+    "objectID": "index.html#what-is-on-this-site",
+    "href": "index.html#what-is-on-this-site",
+    "title": "Bank Customer Churn",
+    "section": "What is on this site",
+    "text": "What is on this site\n\n\n\nPage\nWhat it covers\n\n\n\n\nFindings\nWhat the data actually said, including the part that contradicted the first conclusion\n\n\nArchitecture\nLakebase, the medallion layers, and the reverse ETL that closes the loop\n\n\nThe Model\nThree families, why two others were never tried, and the two criteria that failed\n\n\nApplication\nThe retention dashboard, and why the public copy reads a snapshot"
+  },
+  {
+    "objectID": "index.html#how-it-was-built",
+    "href": "index.html#how-it-was-built",
+    "title": "Bank Customer Churn",
+    "section": "How it was built",
+    "text": "How it was built\nEight notebooks running from a local machine against Databricks through Databricks Connect: Lakebase (Postgres 17) for the operational side, Unity Catalog and Delta for the analytical side, MLflow for tracking and the model registry, and a Streamlit dashboard for the retention team.\n\nThe dataset is synthetic, and the project proves it rather than assuming it — four independent signs, none of them looked for on purpose. That places a ceiling on what any model can learn here, and the ceiling is stated instead of hidden."
+  },
+  {
+    "objectID": "app.html",
+    "href": "app.html",
+    "title": "Application",
+    "section": "",
+    "text": "The campaigns team does not need a metrics report. They need a list of customers with an action attached, and a reason to trust the number next to each name.\nThe dashboard has five sections: an executive summary with the calibration check in plain sight, segmentation with filters, the ranked list with a suggested action, model performance, and an individual scorer."
+  },
+  {
+    "objectID": "app.html#what-it-is-for",
+    "href": "app.html#what-it-is-for",
+    "title": "Application",
+    "section": "",
+    "text": "The campaigns team does not need a metrics report. They need a list of customers with an action attached, and a reason to trust the number next to each name.\nThe dashboard has five sections: an executive summary with the calibration check in plain sight, segmentation with filters, the ranked list with a suggested action, model performance, and an individual scorer."
+  },
+  {
+    "objectID": "app.html#two-copies-on-purpose",
+    "href": "app.html#two-copies-on-purpose",
+    "title": "Application",
+    "section": "Two copies, on purpose",
+    "text": "Two copies, on purpose\n\n\n\n\n\n\n\n\n\nDeployed on Databricks\nPublic copy\n\n\n\n\nReads from\nThe SQL warehouse, live\nA parquet snapshot in the repository\n\n\nModel\nLoaded from Unity Catalog\nExported alongside the snapshot\n\n\nAccess\nWorkspace sign-in required\nOpen to anyone\n\n\n\nThe reason for the split is practical. A free-tier SQL warehouse stops itself after inactivity, and pointing a public app at it would mean either publishing credentials to a third-party service or leaving the page unreachable most of the time.\n\nA dashboard showing ten thousand pre-scored rows does not need a query engine behind it. The pipeline is what demonstrates the Databricks work — the dashboard is a presentation layer, and treating it as one is what makes it openable by anyone."
+  },
+  {
+    "objectID": "app.html#the-scorer-is-a-test-not-a-toy",
+    "href": "app.html#the-scorer-is-a-test-not-a-toy",
+    "title": "Application",
+    "section": "The scorer is a test, not a toy",
+    "text": "The scorer is a test, not a toy\nThe individual prediction section carries a field guide and eight preset profiles. Each profile states the risk level the analysis leads you to expect before you score it, and the result reports whether the model agreed.\nFour of the nine fields should barely move the prediction. credit_score from 350 to 850, estimated_salary from 12 to 199,000 — the probability hardly shifts. That is not a defect: those variables have no signal, and that was established separately before anything was trained.\nTwo of the profiles are identical except for one checkbox:\n\n\n\n\nAge\nProducts\nActive\nExpected\n\n\n\n\nDemo A\n68\n2\nyes\nlow\n\n\nDemo B\n68\n2\nno\nhigh\n\n\n\nIntuition says older means riskier. The data says active customers over 60 churn less than a forty-year-old. If both profiles come out similar, the model did not capture the age × activity interaction and something is wrong upstream — which is exactly what a demonstration is for."
+  },
+  {
+    "objectID": "app.html#running-it",
+    "href": "app.html#running-it",
+    "title": "Application",
+    "section": "Running it",
+    "text": "Running it\npip install -r app/requirements.txt\nstreamlit run app/streamlit_app.py\n\n\nmodel        : bank_churn_rf_calibrated v1\nregistered as: bank_churn_eng.gold.churn_model v4\ncapacity     : 800 contacts per campaign\nthreshold    : 0.7288"
+  },
+  {
+    "objectID": "findings.html",
+    "href": "findings.html",
+    "title": "Findings",
+    "section": "",
+    "text": "The three strongest relationships in this dataset are non-monotonic, and in all three the correlation coefficient misleads.\nnum_of_products spans 92 points between groups — from 7.6% churn at two products to 100% at four — and its Spearman correlation with churn is −0.05. A feature selection step filtering on |ρ| &gt; 0.1 would have deleted the strongest predictor in the table.\nThe reason is mechanical. Correlation measures monotonicity. Risk falls from one product to two and then explodes at three and four; averaged over the range, the ups cancel the downs.\n\nThis is already an argument about model choice, made before any model existed. A linear model has to be told about a shape like this. A tree finds it alone."
+  },
+  {
+    "objectID": "findings.html#the-correlation-trap",
+    "href": "findings.html#the-correlation-trap",
+    "title": "Findings",
+    "section": "",
+    "text": "The three strongest relationships in this dataset are non-monotonic, and in all three the correlation coefficient misleads.\nnum_of_products spans 92 points between groups — from 7.6% churn at two products to 100% at four — and its Spearman correlation with churn is −0.05. A feature selection step filtering on |ρ| &gt; 0.1 would have deleted the strongest predictor in the table.\nThe reason is mechanical. Correlation measures monotonicity. Risk falls from one product to two and then explodes at three and four; averaged over the range, the ups cancel the downs.\n\nThis is already an argument about model choice, made before any model existed. A linear model has to be told about a shape like this. A tree finds it alone."
+  },
+  {
+    "objectID": "findings.html#the-finding-that-changed-the-conclusion",
+    "href": "findings.html#the-finding-that-changed-the-conclusion",
+    "title": "Findings",
+    "section": "The finding that changed the conclusion",
+    "text": "The finding that changed the conclusion\nExploration first established that age describes an inverted U: risk climbs to the 50-59 band and falls after. That turned out to be a composition artefact.\n\n\n\n\n\n\n\n\nFigure 1: Split by activity, the inverted U disappears. Among inactive customers risk never stops climbing; among active ones it does fall after 60. The aggregate curve only bends because the share of active customers changes across age bands.\n\n\n\n\n\nTwo consequences follow, and both are decisions rather than observations.\nOn modelling. A model that treats age additively cannot represent this. It has to capture an interaction — an argument for trees over linear models, made from the data rather than from preference.\nOn the business. The highest-risk cell in the whole dataset is inactive and over 60. And activity is the one variable the bank can actually change. Age is observed; inactivity is fought."
+  },
+  {
+    "objectID": "findings.html#the-confounder-that-halved-an-effect",
+    "href": "findings.html#the-confounder-that-halved-an-effect",
+    "title": "Findings",
+    "section": "The confounder that halved an effect",
+    "text": "The confounder that halved an effect\nCustomers with zero balance churn at 13.8% against 24.1% for those with a balance — a gap of 10.3 points, and it looks conclusive.\nExcept Germany has not one single customer with zero balance, and Germany churns at 32.4%. Every German sits in the “has a balance” bucket, dragging it up.\nRemoving Germany, the gap falls to 4.9 points. The effect is real and half the size it looked. Reporting the 10.3 would not have been a lie, but it would have been wrong — and nobody would have caught it without the country breakdown."
+  },
+  {
+    "objectID": "findings.html#four-signs-the-data-is-synthetic",
+    "href": "findings.html#four-signs-the-data-is-synthetic",
+    "title": "Findings",
+    "section": "Four signs the data is synthetic",
+    "text": "Four signs the data is synthetic\nNone of these was looked for. All four turned up pulling on a quality check.\n\n\n\n\n\n\n\n\n\nSignal\nWhy it gives the game away\n\n\n\n\n1\nSalary with skew 0.00 and kurtosis −1.18\nThe exact values of a uniform distribution. Real salaries pile up low with a long right tail\n\n\n2\nAge and tenure correlate at −0.01\nIn real data tenure grows with age. These were drawn independently\n\n\n3\nAll 60 customers with four products left\n100% across sixty cases is a rule, not a behaviour\n\n\n4\nNo outlier possible in salary\nIn a uniform distribution the interquartile fences fall outside the data by construction\n\n\n\nThe second explains the 322 accounts apparently opened before the customer turned 18. There are no corrupt rows to clean: the generator rolled one die for age and another for tenure, and some combinations came out impossible.\n\nThe honest implication. The interactions a model can learn here are limited to the ones the generator introduced. Detecting that from the internal inconsistencies is worth more than repeating that it is “a clean dataset of ten thousand rows with no nulls”."
+  },
+  {
+    "objectID": "findings.html#two-effects-with-no-available-explanation",
+    "href": "findings.html#two-effects-with-no-available-explanation",
+    "title": "Findings",
+    "section": "Two effects with no available explanation",
+    "text": "Two effects with no available explanation\nGermany churns at twice the rate of France and Spain while being indistinguishable on every observable variable — same mean age, same share of active customers, same product counts. Women churn at 25.1% against 16.5% for men, and the gap replicates inside all three countries.\nBoth variables predict well precisely because they stand in for something not measured. That is what makes them dangerous rather than useful, and it is why the deployed model does not use gender."
+  },
+  {
+    "objectID": "model.html",
+    "href": "model.html",
+    "title": "The Model",
+    "section": "",
+    "text": "Figure 1: Average precision under stratified five-fold cross-validation. Grey bars are the baselines. The lower one is chance; the upper one is a two-variable rule the bank could apply with no model at all.\n\n\n\n\n\nbaseline_dummy scores 0.2037 — the base rate, what random guessing gets. That is an easy rival and it proves nothing.\nbaseline_business is the real one: contact customers who are inactive and over 50. If a random forest tuned over two days does not clearly beat that, the project does not justify its cost. Almost no churn project submits itself to this test."
+  },
+  {
+    "objectID": "model.html#what-the-model-had-to-beat",
+    "href": "model.html#what-the-model-had-to-beat",
+    "title": "The Model",
+    "section": "",
+    "text": "Figure 1: Average precision under stratified five-fold cross-validation. Grey bars are the baselines. The lower one is chance; the upper one is a two-variable rule the bank could apply with no model at all.\n\n\n\n\n\nbaseline_dummy scores 0.2037 — the base rate, what random guessing gets. That is an easy rival and it proves nothing.\nbaseline_business is the real one: contact customers who are inactive and over 50. If a random forest tuned over two days does not clearly beat that, the project does not justify its cost. Almost no churn project submits itself to this test."
+  },
+  {
+    "objectID": "model.html#why-knn-and-svm-were-never-tried",
+    "href": "model.html#why-knn-and-svm-were-never-tried",
+    "title": "The Model",
+    "section": "Why KNN and SVM were never tried",
+    "text": "Why KNN and SVM were never tried\nKNN classifies by proximity, and proximity has no meaning across these columns. It would mix euros of balance, years of age and a country into a single distance. That can be normalised, but the resulting number corresponds to nothing.\nSVM has a more concrete problem: it does not produce probabilities natively. It returns a side of a boundary. This system does not need a yes or no — it needs to rank the portfolio to allocate 800 calls. Without probability there is no ranking.\n\nNeither was rejected on performance. They were rejected because they do not fit the shape of the decision, and testing a model you could not use even if it won is time spent on nothing."
+  },
+  {
+    "objectID": "model.html#what-the-model-uses",
+    "href": "model.html#what-the-model-uses",
+    "title": "The Model",
+    "section": "What the model uses",
+    "text": "What the model uses\n\n\n\n\n\n\n\n\nFigure 2: Permutation importance measured on unseen data. In grey, variables whose effect is smaller than their own error — indistinguishable from zero, so the ordering among them is not interpretable.\n\n\n\n\n\nPermutation importance rather than the forest’s built-in impurity measure, which favours variables with many distinct values regardless of signal. It has two traps, and both were hit at least once during the work: measuring columns the pipeline discards, which produces phantom zeros that push real variables down the table; and measuring on training data, where importance reflects what the model memorised rather than what helps it predict."
+  },
+  {
+    "objectID": "model.html#calibration-is-not-cosmetic",
+    "href": "model.html#calibration-is-not-cosmetic",
+    "title": "The Model",
+    "section": "Calibration is not cosmetic",
+    "text": "Calibration is not cosmetic\nThe forest was trained with class_weight=\"balanced_subsample\", which improves ranking and inflates the probabilities.\nFor ranking that is harmless. But this system compares against a break-even threshold of 0.194 that came out of the cost model. If the probability is not a probability, that threshold means nothing.\n\n\n\n\n\n\n\n\nFigure 3: Mean predicted probability against observed churn, per risk level. The two bars tracking each other is the proof. Isotonic calibration learns a monotonic function, so it corrects the scale without being able to damage the ranking."
+  },
+  {
+    "objectID": "model.html#the-two-criteria-that-were-not-met",
+    "href": "model.html#the-two-criteria-that-were-not-met",
+    "title": "The Model",
+    "section": "The two criteria that were not met",
+    "text": "The two criteria that were not met\nEight criteria were registered before any model was trained. Six were met. The two that failed are reported as failures, and neither was adjusted afterwards.\n\nThe country recall gap\nA gap of 20.1 points against a 10-point criterion. It is not a bug: it is the consequence of one global threshold applied to groups with different base rates. Germany churns at twice the rate, so it absorbs a larger share of the quota.\nEqualising it is possible and it was priced: roughly 720 € per campaign in lost value. Equalising recall across groups with different base rates is mathematically incompatible with holding other desirable properties at once. This project does not promise a fair system — it measures the gap, prices it, and leaves the decision with the business.\n\n\nThe recall criterion was impossible\n\n\n\n\n\n\n\n\nFigure 4: With fixed capacity, no model can exceed the ratio of contacts to churners. The criterion asked for 0.60; the arithmetic allows 0.393.\n\n\n\n\n\n\n\ncriterion       : 0.60\nreachable ceiling: 0.3931   (a perfect oracle)\nmodel reached    : 0.3489   = 88.8% of the maximum\n\n\nThe criterion was not lowered so it could pass. It stayed where it was, it failed, and the reason it was impossible is explained. Moving the target after seeing the result is the one thing that cannot be defended."
+  },
+  {
+    "objectID": "model.html#the-confusion-matrix-in-euros",
+    "href": "model.html#the-confusion-matrix-in-euros",
+    "title": "The Model",
+    "section": "The confusion matrix, in euros",
+    "text": "The confusion matrix, in euros\n\n\n\n\n\n\n\n\nFigure 5: On the held-out test set, at the threshold capacity imposes. False negatives are the expensive error — but most of them are not a model failure, they are the consequence of having 160 contacts for 407 leavers."
+  }
+]

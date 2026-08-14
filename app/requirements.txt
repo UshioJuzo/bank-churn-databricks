@@ -1,0 +1,14 @@
+# Dependencies for the public application only.
+#
+# Deliberately slim: no databricks-connect, no mlflow, no pyspark. The app reads
+# a parquet snapshot, so none of the pipeline machinery is needed to serve it.
+# Streamlit Community Cloud installs this and nothing else.
+streamlit>=1.38
+pandas>=2.2
+numpy>=1.26
+plotly>=5.24
+pyarrow>=17.0
+
+# Only needed if data/model.joblib is present, for the individual prediction tab.
+scikit-learn>=1.5
+joblib>=1.4

@@ -1,0 +1,83 @@
+---
+title: "Bank Customer Churn"
+subtitle: "Ranking a portfolio when you can only call 800 of them"
+---
+
+::: {.hero-meta}
+10,000 customers · 20.4% annual churn · 800 calls per campaign · Databricks
+:::
+
+## The question
+
+A bank loses one customer in five every year and has budget to call 800 of them
+before they go. The question is not *who will leave* — nobody decides that. It is
+**who to call with the calls you have**.
+
+That constraint changes the problem. Recovering a customer is worth 145 €;
+bothering one who was staying costs 35 €. From those two numbers a threshold
+falls out:
+
+$$p^* = \frac{35}{145 + 35} = 0.194$$
+
+Below that probability, calling destroys value. But with fixed capacity the
+threshold that actually applies is not the profitable one — it is the one the
+quota imposes. The 800 highest-risk customers go in, and the cut lands at 0.73.
+
+**Capacity turns classification into ranking.** Everything else on this site
+follows from that sentence: the metric, the rival to beat, and the ceiling the
+project could not cross.
+
+::: {.thread}
+The model is not judged against random guessing. It is judged against the rule
+the bank could apply tomorrow with no model at all.
+:::
+
+## What came out
+
+```{python}
+#| output: asis
+# .style would need jinja2, which is one more thing that has to be installed
+# wherever the site is rendered. to_markdown keeps the dependency list shorter.
+import charts, pandas as pd
+m = charts.load("model_metrics").iloc[0]
+c = charts.load("model_comparison").set_index("model")
+
+tabla = pd.DataFrame({
+    "Model":         [f"{c.loc['random_forest_tuned','average_precision']:.4f}",
+                      f"{m.roc_auc:.4f}", f"{m.precision:.1%}",
+                      f"{int(m.tp)} of {int(m.tp + m.fn)}"],
+    "Business rule": [f"{c.loc['baseline_business','average_precision']:.4f}",
+                      f"{c.loc['baseline_business','roc_auc']:.4f}", "—", "—"],
+}, index=["Average precision", "ROC-AUC",
+          "Precision at the operating threshold", "Churners caught in the quota"])
+
+print(tabla.to_markdown())
+```
+
+```{python}
+#| label: fig-split
+#| fig-cap: "The portfolio split by risk level. The high band is exactly 800 customers, because that is the campaign capacity — not because a probability cut happened to land there."
+charts.portfolio_split()
+```
+
+## What is on this site
+
+| Page | What it covers |
+|---|---|
+| [Findings](findings.qmd) | What the data actually said, including the part that contradicted the first conclusion |
+| [Architecture](pipeline.qmd) | Lakebase, the medallion layers, and the reverse ETL that closes the loop |
+| [The Model](model.qmd) | Three families, why two others were never tried, and the two criteria that failed |
+| [Application](app.qmd) | The retention dashboard, and why the public copy reads a snapshot |
+
+## How it was built
+
+Eight notebooks running from a local machine against Databricks through
+Databricks Connect: **Lakebase** (Postgres 17) for the operational side,
+**Unity Catalog** and **Delta** for the analytical side, **MLflow** for tracking
+and the model registry, and a **Streamlit** dashboard for the retention team.
+
+::: {.note}
+The dataset is synthetic, and the project proves it rather than assuming it —
+four independent signs, none of them looked for on purpose. That places a ceiling
+on what any model can learn here, and the ceiling is stated instead of hidden.
+:::

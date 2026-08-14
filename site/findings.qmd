@@ -1,0 +1,90 @@
+---
+title: "Findings"
+subtitle: "What the data said, including where it contradicted itself"
+---
+
+## The correlation trap
+
+The three strongest relationships in this dataset are **non-monotonic**, and in
+all three the correlation coefficient misleads.
+
+`num_of_products` spans 92 points between groups — from 7.6% churn at two
+products to 100% at four — and its Spearman correlation with churn is **−0.05**.
+A feature selection step filtering on |ρ| > 0.1 would have deleted the strongest
+predictor in the table.
+
+The reason is mechanical. Correlation measures monotonicity. Risk falls from one
+product to two and then explodes at three and four; averaged over the range, the
+ups cancel the downs.
+
+::: {.thread}
+This is already an argument about model choice, made before any model existed. A
+linear model has to be told about a shape like this. A tree finds it alone.
+:::
+
+## The finding that changed the conclusion
+
+Exploration first established that age describes an inverted U: risk climbs to
+the 50-59 band and falls after. **That turned out to be a composition artefact.**
+
+```{python}
+#| label: fig-interaction
+#| fig-cap: "Split by activity, the inverted U disappears. Among inactive customers risk never stops climbing; among active ones it does fall after 60. The aggregate curve only bends because the share of active customers changes across age bands."
+import charts
+charts.age_activity()
+```
+
+Two consequences follow, and both are decisions rather than observations.
+
+**On modelling.** A model that treats age additively cannot represent this. It
+has to capture an interaction — an argument for trees over linear models, made
+from the data rather than from preference.
+
+**On the business.** The highest-risk cell in the whole dataset is *inactive and
+over 60*. And activity is the one variable the bank can actually change. Age is
+observed; inactivity is fought.
+
+## The confounder that halved an effect
+
+Customers with zero balance churn at 13.8% against 24.1% for those with a
+balance — a gap of 10.3 points, and it looks conclusive.
+
+Except **Germany has not one single customer with zero balance**, and Germany
+churns at 32.4%. Every German sits in the "has a balance" bucket, dragging it up.
+
+Removing Germany, the gap falls to **4.9 points**. The effect is real and half the
+size it looked. Reporting the 10.3 would not have been a lie, but it would have
+been wrong — and nobody would have caught it without the country breakdown.
+
+## Four signs the data is synthetic
+
+None of these was looked for. All four turned up pulling on a quality check.
+
+| | Signal | Why it gives the game away |
+|---|---|---|
+| 1 | Salary with skew 0.00 and kurtosis −1.18 | The exact values of a uniform distribution. Real salaries pile up low with a long right tail |
+| 2 | Age and tenure correlate at −0.01 | In real data tenure grows with age. These were drawn independently |
+| 3 | All 60 customers with four products left | 100% across sixty cases is a rule, not a behaviour |
+| 4 | No outlier possible in salary | In a uniform distribution the interquartile fences fall outside the data by construction |
+
+The second explains the 322 accounts apparently opened before the customer turned
+18. There are no corrupt rows to clean: the generator rolled one die for age and
+another for tenure, and some combinations came out impossible.
+
+::: {.note}
+**The honest implication.** The interactions a model can learn here are limited to
+the ones the generator introduced. Detecting that from the internal
+inconsistencies is worth more than repeating that it is "a clean dataset of ten
+thousand rows with no nulls".
+:::
+
+## Two effects with no available explanation
+
+Germany churns at twice the rate of France and Spain while being
+**indistinguishable on every observable variable** — same mean age, same share of
+active customers, same product counts. Women churn at 25.1% against 16.5% for
+men, and the gap replicates inside all three countries.
+
+Both variables predict well **precisely because they stand in for something not
+measured**. That is what makes them dangerous rather than useful, and it is why
+the deployed model does not use gender.

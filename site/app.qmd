@@ -1,0 +1,72 @@
+---
+title: "Application"
+subtitle: "Where the work stops being a notebook"
+---
+
+## What it is for
+
+The campaigns team does not need a metrics report. They need a list of customers
+with an action attached, and a reason to trust the number next to each name.
+
+The dashboard has five sections: an executive summary with the calibration check
+in plain sight, segmentation with filters, the ranked list with a suggested
+action, model performance, and an individual scorer.
+
+## Two copies, on purpose
+
+| | Deployed on Databricks | Public copy |
+|---|---|---|
+| Reads from | The SQL warehouse, live | A parquet snapshot in the repository |
+| Model | Loaded from Unity Catalog | Exported alongside the snapshot |
+| Access | Workspace sign-in required | Open to anyone |
+
+The reason for the split is practical. A free-tier SQL warehouse stops itself
+after inactivity, and pointing a public app at it would mean either publishing
+credentials to a third-party service or leaving the page unreachable most of the
+time.
+
+::: {.thread}
+A dashboard showing ten thousand pre-scored rows does not need a query engine
+behind it. The pipeline is what demonstrates the Databricks work — the dashboard
+is a presentation layer, and treating it as one is what makes it openable by
+anyone.
+:::
+
+## The scorer is a test, not a toy
+
+The individual prediction section carries a field guide and eight preset profiles.
+Each profile states the risk level the analysis leads you to expect **before** you
+score it, and the result reports whether the model agreed.
+
+Four of the nine fields should barely move the prediction. `credit_score` from 350
+to 850, `estimated_salary` from 12 to 199,000 — the probability hardly shifts.
+That is not a defect: those variables have no signal, and that was established
+separately before anything was trained.
+
+Two of the profiles are identical except for one checkbox:
+
+| | Age | Products | Active | Expected |
+|---|---|---|---|---|
+| Demo A | 68 | 2 | yes | **low** |
+| Demo B | 68 | 2 | no | **high** |
+
+Intuition says older means riskier. The data says active customers over 60 churn
+less than a forty-year-old. If both profiles come out similar, the model did not
+capture the age × activity interaction and something is wrong upstream — which is
+exactly what a demonstration is for.
+
+## Running it
+
+```bash
+pip install -r app/requirements.txt
+streamlit run app/streamlit_app.py
+```
+
+```{python}
+import charts
+m = charts.manifest()
+print(f"model        : {m['model_name']} {m['model_version']}")
+print(f"registered as: {m['uc_model']} v{m['uc_version']}")
+print(f"capacity     : {m['capacity']} contacts per campaign")
+print(f"threshold    : {m['threshold']:.4f}")
+```

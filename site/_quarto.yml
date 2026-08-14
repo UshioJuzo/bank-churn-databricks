@@ -1,0 +1,80 @@
+project:
+  type: website
+  output-dir: ../docs        # GitHub Pages serves from main branch /docs
+  render:
+    - "*.qmd"
+
+website:
+  title: "Bank Customer Churn"
+  description: "Ranking a customer portfolio when you can only call 800 of them"
+  site-url: "https://UshioJuzo.github.io/bank-churn-databricks/"
+  repo-url: "https://github.com/UshioJuzo/bank-churn-databricks"
+
+  navbar:
+    left:
+      - href: index.qmd
+        text: Overview
+      - href: findings.qmd
+        text: Findings
+      - href: pipeline.qmd
+        text: Architecture
+      - href: model.qmd
+        text: The Model
+      - href: app.qmd
+        text: Application
+    right:
+      - icon: github
+        href: https://github.com/UshioJuzo/bank-churn-databricks
+        aria-label: GitHub repository
+
+  page-footer:
+    center: "Andrés Rivera · Data Science"
+    right:
+      - icon: github
+        href: https://github.com/UshioJuzo/bank-churn-databricks
+
+format:
+  html:
+    theme:
+      dark: theme/tema-oscuro.scss
+      light: theme/tema-claro.scss
+
+    toc: true
+    toc-location: right
+    toc-title: "Contents"
+    toc-depth: 3
+    number-sections: false
+
+    title-block-banner: true
+    title-block-style: default
+
+    highlight-style:
+      dark: github-dark
+      light: github-dark
+    code-copy: true
+    code-overflow: wrap
+
+    smooth-scroll: true
+    fig-align: center
+    fig-cap-location: bottom
+    df-print: default
+
+    include-in-header:
+      text: |
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+execute:
+  echo: false        # the site shows results; the code lives in the notebooks
+  warning: false
+  message: false
+
+  # Deliberately NOT using freeze. Freeze tracks only the .qmd, so an edit to
+  # charts.py would leave stale figures cached and the render would publish the
+  # old ones without saying so. Every chunk reads a few hundred KB of parquet
+  # and draws one matplotlib figure: a full re-execution costs seconds and is
+  # always honest.
+  freeze: false
+
+lang: en
+jupyter: python3

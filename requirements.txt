@@ -1,0 +1,17 @@
+# Notebooks. Pinned loosely: these are the versions the project was built with.
+databricks-connect>=18.0
+databricks-sdk>=0.110.0
+pg8000>=1.31
+python-dotenv>=1.0
+
+pandas>=2.2
+numpy>=1.26
+scikit-learn>=1.5
+scipy>=1.13
+matplotlib>=3.9
+mlflow>=2.16
+pyarrow>=17.0
+
+# Note: do NOT install `pyspark` alongside databricks-connect. They ship the
+# same modules and the one that wins depends on install order, which produces
+# failures that make no sense. databricks-connect already provides the API.

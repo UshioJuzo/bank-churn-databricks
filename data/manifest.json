@@ -1,0 +1,13 @@
+[
+  {
+    "generated_at":"2026-08-13T23:29:07.547838+00:00",
+    "model_name":"bank_churn_rf_calibrated",
+    "model_version":"v1",
+    "uc_model":"bank_churn_eng.gold.churn_model",
+    "uc_version":"4",
+    "capacity":800,
+    "threshold":0.7287834467,
+    "test_roc_auc":0.8562391359,
+    "test_brier":0.1028116496
+  }
+]

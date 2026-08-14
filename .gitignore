@@ -1,0 +1,70 @@
+# ==============================================================================
+# Credentials. Nothing here ever reaches the repository.
+# ==============================================================================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.databrickscfg
+
+# Streamlit stores deployment secrets here. The public app needs none, but an
+# accidental commit of this file would publish whatever it holds.
+.streamlit/secrets.toml
+
+# ==============================================================================
+# Python
+# ==============================================================================
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+.pytest_cache/
+
+# ==============================================================================
+# MLflow
+# ------------------------------------------------------------------------------
+# None of this should exist: bootstrap() points tracking at Databricks. If any of
+# it reappears after running a notebook, the tracking URI did not take and the
+# runs are going to local disk instead of the workspace.
+# ==============================================================================
+mlruns/
+mlflow.db
+mlflow.db-journal
+*.sqlite
+*.sqlite3
+
+# ==============================================================================
+# Quarto
+# ------------------------------------------------------------------------------
+# The rendered site lives in docs/, which IS committed: that is what GitHub Pages
+# serves. Only the build cache is excluded.
+# ==============================================================================
+site/.quarto/
+site/_site/
+site/_outputs/
+.quarto/
+
+# ==============================================================================
+# Deliberately NOT ignored
+# ------------------------------------------------------------------------------
+#   data/*.parquet     ~150 KB. The snapshot the public application reads.
+#   data/model.joblib  ~27 MB. Without it the individual prediction tab cannot
+#                      score anything on Streamlit Cloud. Committed on purpose,
+#                      and NOT through Git LFS -- Streamlit Cloud does not
+#                      resolve LFS pointers and would find a 130-byte text file
+#                      where it expects a model.
+#   docs/              the rendered site.
+# ==============================================================================
+
+# ==============================================================================
+# OS junk
+# ==============================================================================
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+*.swp

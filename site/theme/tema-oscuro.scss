@@ -1,0 +1,120 @@
+/*-- scss:defaults --*/
+// ═══════════════════════════════════════════════════════════════════
+//  TEMA OSCURO (por defecto)
+//
+//  Paleta base (divergente cálido ↔ frío):
+//  #4D0507 #6D2312 #913D1A #B45B23 #D77B30 #F3A452 #FDD08E #FFFFDE
+//  #B3E0CC #6CBFB6 #389E9C #20767C #0E5C5E #064042 #042728
+//
+//  En modo oscuro el extremo frío (los verdes petróleo) hace de
+//  fondo, el crema #FFFFDE es la tinta y el extremo cálido (naranjas)
+//  son los acentos. Los tonos intermedios de fondo son mezclas de la
+//  paleta con el fondo base, para mantener el contraste bajo control.
+// ═══════════════════════════════════════════════════════════════════
+
+// ── Tipografía (igual en ambos temas) ───────────────────────────────
+$font-family-sans-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino,
+                         'Book Antiqua', Georgia, serif !default;
+$font-family-monospace:  'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace !default;
+$font-size-root:         17px !default;
+$line-height-base:       1.62 !default;
+$headings-font-weight:   600 !default;
+
+// ── Fondos y líneas ─────────────────────────────────────────────────
+$paper:      #042728;   // fondo de página          (paleta)
+$paper-2:    #08383a;   // fondo alterno            (mezcla)
+$card:       #064042;   // tarjetas y salidas       (paleta)
+$line:       #0e5c5e;   // bordes                   (paleta)
+$line-soft:  #0a4a4c;   // bordes suaves            (mezcla)
+$deep:       #02191a;   // más oscuro que el fondo  (mezcla)
+
+// ── Tinta ───────────────────────────────────────────────────────────
+$ink:        #ffffde;   // texto principal          (paleta)
+$ink-soft:   #cde7da;   // párrafos                 (mezcla)
+$ink-faint:  #6cbfb6;   // metadatos                (paleta)
+
+// ── Acentos ─────────────────────────────────────────────────────────
+$rust:       #f3a452;   // acento de marca          (paleta)
+$rust-soft:  #3e251c;   // fondo cálido tenue       (mezcla de #6D2312)
+$ok:         #b3e0cc;   // (paleta)
+$ok-soft:    #2a504c;   // (mezcla de #B3E0CC)
+$warn:       #fdd08e;   // (paleta)
+$warn-soft:  #443122;   // (mezcla de #913D1A)
+$bad:        #f3a452;   // (paleta) — se distingue por su fondo
+$bad-soft:   #301314;   // (mezcla de #4D0507)
+$steel:      #6cbfb6;   // enlaces e info           (paleta)
+$steel-soft: #0e4345;   // (mezcla de #20767C)
+
+// ── Derivadas que usa _base ─────────────────────────────────────────
+$banner-bg:         #02191a;
+$banner-ink:        #ffffde;
+$banner-ink-soft:   #b3e0cc;
+$banner-chip-bg:    rgba(255, 255, 222, .08);
+$banner-chip-line:  rgba(255, 255, 222, .18);
+
+$note-line:    #20767c;
+$pitfall-line: #6d2312;
+$good-line:    #389e9c;
+$pitfall-ink:  #fdd08e;
+$good-ink:     #cde7da;
+
+$code-block-ink: #ffffde;
+$table-head-bg:  #0e5c5e;
+$table-head-ink: #ffffde;
+
+// fondo de los gráficos (matplotlib exporta con fondo claro)
+$figure-mat:     #ffffde;
+
+// ── Grilla de página ────────────────────────────────────────────────
+//  Variables propias de Quarto. Por defecto son sidebar 250px · cuerpo
+//  800px · margen 250px · canaleta 1.5em, y la grilla queda centrada.
+//
+//  El TOC está a la DERECHA (`toc-location: right`), o sea que vive en
+//  la columna de margen: por eso la ancha es $grid-margin-width. La
+//  columna izquierda se achica para correr el conjunto hacia allá, y la
+//  canaleta grande es la que da el aire entre el texto y el índice.
+$grid-sidebar-width:        100px;
+$grid-body-width:           840px;
+$grid-margin-width:         300px;
+$grid-column-gutter-width:  3.2rem;
+
+// ── Variables de Bootstrap / Quarto ─────────────────────────────────
+$body-bg:          $paper;
+$body-color:       $ink-soft;
+$link-color:       $steel;
+$link-hover-color: $rust;
+$border-color:     $line;
+
+$code-color:            $ok;
+$code-bg:               $paper-2;
+$code-block-bg:         $deep;
+$code-block-border-left: false;
+
+$table-border-color: $line-soft;
+$table-striped-bg:   $paper-2;
+
+$input-bg:            $card;
+$input-color:         $ink;
+$dropdown-bg:         $card;
+$dropdown-link-color: $ink-soft;
+
+/*-- scss:rules --*/
+@import "base";
+
+// ── Ajustes propios del modo oscuro ─────────────────────────────────
+.sidebar, #quarto-sidebar, #quarto-margin-sidebar { background: transparent; }
+
+.quarto-color-scheme-toggle {
+  opacity: .7;
+  &:hover { opacity: 1; }
+}
+
+// los gráficos de matplotlib traen fondo claro: se les da un marco
+// para que no queden como agujeros de luz sobre el fondo petróleo
+main img, .cell-output-display img {
+  border-radius: 3px;
+  background: $figure-mat;
+  padding: 6px;
+  border: 1px solid $line-soft;
+  box-sizing: border-box;   // el padding entra dentro del max-width: 100%
+}

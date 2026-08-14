@@ -1,0 +1,90 @@
+/*-- scss:defaults --*/
+// ═══════════════════════════════════════════════════════════════════
+//  TEMA CLARO (alternativa)
+//
+//  Misma paleta que el tema oscuro, invertida de rol: el crema
+//  #FFFFDE es el fondo, el extremo frío (#042728, #0E5C5E) es la
+//  tinta y el extremo cálido (#913D1A, #B45B23) son los acentos.
+// ═══════════════════════════════════════════════════════════════════
+
+// ── Tipografía (igual en ambos temas) ───────────────────────────────
+$font-family-sans-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino,
+                         'Book Antiqua', Georgia, serif !default;
+$font-family-monospace:  'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace !default;
+$font-size-root:         17px !default;
+$line-height-base:       1.62 !default;
+$headings-font-weight:   600 !default;
+
+// ── Fondos y líneas ─────────────────────────────────────────────────
+$paper:      #ffffde;   // fondo de página          (paleta)
+$paper-2:    #fef3ca;   // fondo alterno            (mezcla de #FDD08E)
+$card:       #fffff0;   // tarjetas                 (crema aclarado)
+$line:       #d2e4ca;   // bordes                   (mezcla de #20767C)
+$line-soft:  #e9f1d4;   // bordes suaves            (mezcla)
+$deep:       #042728;   // (paleta)
+
+// ── Tinta ───────────────────────────────────────────────────────────
+$ink:        #042728;   // texto principal          (paleta)
+$ink-soft:   #0e5c5e;   // párrafos                 (paleta)
+$ink-faint:  #20767c;   // metadatos                (paleta)
+
+// ── Acentos ─────────────────────────────────────────────────────────
+$rust:       #913d1a;   // acento de marca          (paleta)
+$rust-soft:  #fbe0c8;   // (mezcla de #F3A452)
+$ok:         #20767c;   // (paleta)
+$ok-soft:    #ddf1d6;   // (mezcla de #B3E0CC)
+$warn:       #b45b23;   // (paleta)
+$warn-soft:  #fef0ce;   // (mezcla de #FDD08E)
+$bad:        #4d0507;   // (paleta)
+$bad-soft:   #f5d9c4;   // (mezcla de #B45B23)
+$steel:      #20767c;   // enlaces e info           (paleta)
+$steel-soft: #ddf1d6;   // (mezcla de #B3E0CC)
+
+// ── Derivadas que usa _base ─────────────────────────────────────────
+$banner-bg:         #042728;
+$banner-ink:        #ffffde;
+$banner-ink-soft:   #b3e0cc;
+$banner-chip-bg:    rgba(255, 255, 222, .08);
+$banner-chip-line:  rgba(255, 255, 222, .18);
+
+$note-line:    #a9d6cd;
+$pitfall-line: #e4b893;
+$good-line:    #9fcbb4;
+$pitfall-ink:  #4d0507;
+$good-ink:     #0e5c5e;
+
+$code-block-ink: #ffffde;
+$table-head-bg:  #0e5c5e;
+$table-head-ink: #ffffde;
+
+// ── Grilla de página ────────────────────────────────────────────────
+//  Mismos valores que el tema oscuro: los dos temas comparten layout.
+//  (Ver la explicación en tema-oscuro.scss.)
+$grid-sidebar-width:        100px;
+$grid-body-width:           840px;
+$grid-margin-width:         300px;
+$grid-column-gutter-width:  3.2rem;
+
+// ── Variables de Bootstrap / Quarto ─────────────────────────────────
+$body-bg:          $paper;
+$body-color:       $ink;
+$link-color:       $steel;
+$link-hover-color: $rust;
+$border-color:     $line;
+
+$code-color:            $steel;
+$code-bg:               $paper-2;
+$code-block-bg:         $deep;
+$code-block-border-left: false;
+
+$table-border-color: $line-soft;
+$table-striped-bg:   $paper-2;
+
+/*-- scss:rules --*/
+@import "base";
+
+// ── Ajustes propios del modo claro ──────────────────────────────────
+.quarto-color-scheme-toggle {
+  opacity: .7;
+  &:hover { opacity: 1; }
+}

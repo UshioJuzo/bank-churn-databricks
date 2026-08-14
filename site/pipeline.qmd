@@ -1,0 +1,79 @@
+---
+title: "Architecture"
+subtitle: "Two engines, and the arrow that closes the loop"
+---
+
+## Why two systems
+
+```
+Volume ─▶ Lakebase ─▶ bronze ─▶ silver ─▶ model ─▶ gold ─▶ Lakebase ─▶ CRM
+  CSV      Postgres      Delta     Delta            Delta   reverse ETL
+                                                        └─▶ parquet ─▶ public app
+```
+
+**Lakebase** is Postgres 17 running inside Databricks: the operational side. Single
+rows, foreign keys, low latency. It is where the retention team's system reads.
+
+**Delta under Unity Catalog** is the analytical side. Columns, history, large
+scans, time travel.
+
+They are two engines because they solve two different problems. There is also an
+operational reason: an analytical scan over the transactional database would
+compete with the writes of the system that actually depends on it.
+
+::: {.thread}
+The predictions travel **back** to Postgres. A model whose output never reaches
+the system that makes the decision has not finished.
+:::
+
+## The medallion layers, and the rule each one keeps
+
+| Layer | What lives there | The rule |
+|---|---|---|
+| `bronze` | The source file, unchanged | Nothing is corrected here. Fidelity beats cleanliness |
+| `silver` | Typed, clean, four derived features | Only **deterministic** features — nothing that learns a statistic |
+| `gold` | Predictions and tables the app reads | One writer per table, no exceptions |
+
+That middle rule is the anti-leakage control. Anything that learns from data —
+scaling, encoding, imputation — lives inside the scikit-learn `Pipeline`, which is
+fitted after the train/test split and inside each cross-validation fold. A scaler
+fitted in silver would have seen the test rows, and every number reported
+afterwards would be quietly optimistic.
+
+## One writer per table
+
+This one was learned the hard way. When two notebooks wrote the same table, every
+re-run of the evaluation notebook wiped the Unity Catalog link the publication
+notebook had added — and the only symptom appeared days later, when the
+application stopped being able to load its model.
+
+| Table | Written by | Read by |
+|---|---|---|
+| `silver.test_holdout` | notebook 04 | 05 |
+| `gold.model_reference` | notebook 04 | 05, 06 |
+| `gold.production_model_base` | notebook 05 | 06 |
+| `gold.production_model` | notebook 06 | the app |
+
+## Privacy enforced by the schema
+
+`surname` exists in the landing table, because that table is a faithful copy of
+the source. It does **not** exist in the modelled table.
+
+The constraint is imposed by the schema rather than by the discipline of whoever
+writes the next query. A column that does not exist cannot be leaked by accident,
+and the boundary holds all the way to the operational query the CRM runs.
+
+## The reverse ETL
+
+```{python}
+#| label: fig-quota
+#| fig-cap: "The 800 contacts are not split evenly. Each country receives a share proportional to its expected churners, which is why Germany takes roughly the same quota as France with half the customers."
+import charts
+charts.country_quota()
+```
+
+The write back to Lakebase is append-only: one row per customer per scoring run.
+That way what was predicted at a given moment can be reconstructed, instead of
+overwriting the past. Both writes are idempotent — the run is upserted and the
+predictions are deleted for that run before reloading — so running the cell twice
+leaves the same state as running it once.

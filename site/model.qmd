@@ -1,0 +1,112 @@
+---
+title: "The Model"
+subtitle: "Three families, two that were never tried, and two criteria that failed"
+---
+
+## What the model had to beat
+
+```{python}
+#| label: fig-comparison
+#| fig-cap: "Average precision under stratified five-fold cross-validation. Grey bars are the baselines. The lower one is chance; the upper one is a two-variable rule the bank could apply with no model at all."
+import charts
+charts.model_comparison()
+```
+
+`baseline_dummy` scores 0.2037 — the base rate, what random guessing gets. That is
+an easy rival and it proves nothing.
+
+**`baseline_business` is the real one**: contact customers who are inactive and
+over 50. If a random forest tuned over two days does not clearly beat that, the
+project does not justify its cost. Almost no churn project submits itself to this
+test.
+
+## Why KNN and SVM were never tried
+
+**KNN** classifies by proximity, and proximity has no meaning across these
+columns. It would mix euros of balance, years of age and a country into a single
+distance. That can be normalised, but the resulting number corresponds to nothing.
+
+**SVM** has a more concrete problem: it does not produce probabilities natively.
+It returns a side of a boundary. This system does not need a yes or no — it needs
+to **rank** the portfolio to allocate 800 calls. Without probability there is no
+ranking.
+
+::: {.thread}
+Neither was rejected on performance. They were rejected because they do not fit
+the shape of the decision, and testing a model you could not use even if it won is
+time spent on nothing.
+:::
+
+## What the model uses
+
+```{python}
+#| label: fig-importance
+#| fig-cap: "Permutation importance measured on unseen data. In grey, variables whose effect is smaller than their own error — indistinguishable from zero, so the ordering among them is not interpretable."
+charts.feature_importance()
+```
+
+Permutation importance rather than the forest's built-in impurity measure, which
+favours variables with many distinct values regardless of signal. It has two traps,
+and both were hit at least once during the work: measuring columns the pipeline
+discards, which produces phantom zeros that push real variables down the table;
+and measuring on training data, where importance reflects what the model
+memorised rather than what helps it predict.
+
+## Calibration is not cosmetic
+
+The forest was trained with `class_weight="balanced_subsample"`, which improves
+ranking and **inflates the probabilities**.
+
+For ranking that is harmless. But this system compares against a break-even
+threshold of 0.194 that came out of the cost model. **If the probability is not a
+probability, that threshold means nothing.**
+
+```{python}
+#| label: fig-calibration
+#| fig-cap: "Mean predicted probability against observed churn, per risk level. The two bars tracking each other is the proof. Isotonic calibration learns a monotonic function, so it corrects the scale without being able to damage the ranking."
+charts.calibration_by_level()
+```
+
+## The two criteria that were not met
+
+Eight criteria were registered before any model was trained. Six were met. The two
+that failed are reported as failures, and neither was adjusted afterwards.
+
+### The country recall gap
+
+A gap of 20.1 points against a 10-point criterion. It is not a bug: it is the
+consequence of one global threshold applied to groups with different base rates.
+Germany churns at twice the rate, so it absorbs a larger share of the quota.
+
+Equalising it is possible and it was priced: roughly 720 € per campaign in lost
+value. Equalising recall across groups with different base rates is mathematically
+incompatible with holding other desirable properties at once. This project does
+not promise a fair system — it measures the gap, prices it, and leaves the
+decision with the business.
+
+### The recall criterion was impossible
+
+```{python}
+#| label: fig-ceiling
+#| fig-cap: "With fixed capacity, no model can exceed the ratio of contacts to churners. The criterion asked for 0.60; the arithmetic allows 0.393."
+charts.recall_ceiling()
+```
+
+```{python}
+m = charts.load("model_metrics").iloc[0]
+print(f"criterion       : 0.60")
+print(f"reachable ceiling: {m.recall_ceiling:.4f}   (a perfect oracle)")
+print(f"model reached    : {m.recall:.4f}   = {m.pct_of_ceiling:.1%} of the maximum")
+```
+
+The criterion was not lowered so it could pass. It stayed where it was, it failed,
+and the reason it was impossible is explained. Moving the target after seeing the
+result is the one thing that cannot be defended.
+
+## The confusion matrix, in euros
+
+```{python}
+#| label: fig-confusion
+#| fig-cap: "On the held-out test set, at the threshold capacity imposes. False negatives are the expensive error — but most of them are not a model failure, they are the consequence of having 160 contacts for 407 leavers."
+charts.confusion_matrix()
+```
