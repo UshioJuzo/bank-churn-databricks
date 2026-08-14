@@ -188,4 +188,9 @@ Databricks Connect · Python (scikit-learn, pandas, PySpark) · Streamlit · Qua
 
 ## Licence
 
-MIT
+[MIT](LICENSE) — the code is free to use, copy and adapt, keeping the copyright
+notice.
+
+The licence covers the code, not the data. The source dataset is the public bank
+churn set on Kaggle and keeps its own terms; this repository does not
+redistribute it, only derived predictions and the notebook that reads it.
