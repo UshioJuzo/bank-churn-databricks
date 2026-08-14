@@ -67,7 +67,7 @@ charts.portfolio_split()
 | [Findings](findings.qmd) | What the data actually said, including the part that contradicted the first conclusion |
 | [Architecture](pipeline.qmd) | Lakebase, the medallion layers, and the reverse ETL that closes the loop |
 | [The Model](model.qmd) | Three families, why two others were never tried, and the two criteria that failed |
-| [Application](app.qmd) | The retention dashboard, and why the public copy reads a snapshot |
+| [Application](app.qmd) | The retention dashboard — [open it live](https://bank-churn-databricks.streamlit.app/) — and why the public copy reads a snapshot |
 
 ## How it was built
 

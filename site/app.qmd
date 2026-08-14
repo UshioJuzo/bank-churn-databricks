@@ -3,6 +3,10 @@ title: "Application"
 subtitle: "Where the work stops being a notebook"
 ---
 
+::: {.hero-meta}
+[Open the dashboard](https://bank-churn-databricks.streamlit.app/)
+:::
+
 ## What it is for
 
 The campaigns team does not need a metrics report. They need a list of customers
@@ -18,7 +22,7 @@ action, model performance, and an individual scorer.
 |---|---|---|
 | Reads from | The SQL warehouse, live | A parquet snapshot in the repository |
 | Model | Loaded from Unity Catalog | Exported alongside the snapshot |
-| Access | Workspace sign-in required | Open to anyone |
+| Access | Workspace sign-in required | [Open to anyone](https://bank-churn-databricks.streamlit.app/) |
 
 The reason for the split is practical. A free-tier SQL warehouse stops itself
 after inactivity, and pointing a public app at it would mean either publishing

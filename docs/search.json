@@ -67,7 +67,7 @@
     "href": "index.html#what-is-on-this-site",
     "title": "Bank Customer Churn",
     "section": "What is on this site",
-    "text": "What is on this site\n\n\n\nPage\nWhat it covers\n\n\n\n\nFindings\nWhat the data actually said, including the part that contradicted the first conclusion\n\n\nArchitecture\nLakebase, the medallion layers, and the reverse ETL that closes the loop\n\n\nThe Model\nThree families, why two others were never tried, and the two criteria that failed\n\n\nApplication\nThe retention dashboard, and why the public copy reads a snapshot"
+    "text": "What is on this site\n\n\n\nPage\nWhat it covers\n\n\n\n\nFindings\nWhat the data actually said, including the part that contradicted the first conclusion\n\n\nArchitecture\nLakebase, the medallion layers, and the reverse ETL that closes the loop\n\n\nThe Model\nThree families, why two others were never tried, and the two criteria that failed\n\n\nApplication\nThe retention dashboard — open it live — and why the public copy reads a snapshot"
   },
   {
     "objectID": "index.html#how-it-was-built",
@@ -81,21 +81,21 @@
     "href": "app.html",
     "title": "Application",
     "section": "",
-    "text": "The campaigns team does not need a metrics report. They need a list of customers with an action attached, and a reason to trust the number next to each name.\nThe dashboard has five sections: an executive summary with the calibration check in plain sight, segmentation with filters, the ranked list with a suggested action, model performance, and an individual scorer."
+    "text": "Open the dashboard"
   },
   {
     "objectID": "app.html#what-it-is-for",
     "href": "app.html#what-it-is-for",
     "title": "Application",
-    "section": "",
-    "text": "The campaigns team does not need a metrics report. They need a list of customers with an action attached, and a reason to trust the number next to each name.\nThe dashboard has five sections: an executive summary with the calibration check in plain sight, segmentation with filters, the ranked list with a suggested action, model performance, and an individual scorer."
+    "section": "What it is for",
+    "text": "What it is for\nThe campaigns team does not need a metrics report. They need a list of customers with an action attached, and a reason to trust the number next to each name.\nThe dashboard has five sections: an executive summary with the calibration check in plain sight, segmentation with filters, the ranked list with a suggested action, model performance, and an individual scorer."
   },
   {
     "objectID": "app.html#two-copies-on-purpose",
     "href": "app.html#two-copies-on-purpose",
     "title": "Application",
     "section": "Two copies, on purpose",
-    "text": "Two copies, on purpose\n\n\n\n\n\n\n\n\n\nDeployed on Databricks\nPublic copy\n\n\n\n\nReads from\nThe SQL warehouse, live\nA parquet snapshot in the repository\n\n\nModel\nLoaded from Unity Catalog\nExported alongside the snapshot\n\n\nAccess\nWorkspace sign-in required\nOpen to anyone\n\n\n\nThe reason for the split is practical. A free-tier SQL warehouse stops itself after inactivity, and pointing a public app at it would mean either publishing credentials to a third-party service or leaving the page unreachable most of the time.\n\nA dashboard showing ten thousand pre-scored rows does not need a query engine behind it. The pipeline is what demonstrates the Databricks work — the dashboard is a presentation layer, and treating it as one is what makes it openable by anyone."
+    "text": "Two copies, on purpose\n\n\n\n\nDeployed on Databricks\nPublic copy\n\n\n\n\nReads from\nThe SQL warehouse, live\nA parquet snapshot in the repository\n\n\nModel\nLoaded from Unity Catalog\nExported alongside the snapshot\n\n\nAccess\nWorkspace sign-in required\nOpen to anyone\n\n\n\nThe reason for the split is practical. A free-tier SQL warehouse stops itself after inactivity, and pointing a public app at it would mean either publishing credentials to a third-party service or leaving the page unreachable most of the time.\n\nA dashboard showing ten thousand pre-scored rows does not need a query engine behind it. The pipeline is what demonstrates the Databricks work — the dashboard is a presentation layer, and treating it as one is what makes it openable by anyone."
   },
   {
     "objectID": "app.html#the-scorer-is-a-test-not-a-toy",

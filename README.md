@@ -7,7 +7,7 @@ bronze/silver/gold Delta architecture, a calibrated model tracked in MLflow, and
 a retention dashboard the campaigns team can actually use.
 
 📊 **[Project site](https://UshioJuzo.github.io/bank-churn-databricks/)** ·
-🚀 **[Live dashboard](https://bank-churn.streamlit.app)**
+🚀 **[Live dashboard](https://bank-churn-databricks.streamlit.app/)**
 
 ---
 
